@@ -1,4 +1,6 @@
 import argparse
+
+import build_calendar
 import builder
 import feedparser
 import helper
@@ -8,6 +10,7 @@ from datetime import date
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enus', help='Only build the en-US language.', action='store_true')
+parser.add_argument('--buildcalendar', help='Only build the en-US language.', action='store_true')
 parser.add_argument('--debug', help='Log output with more detailed build information.', action='store_true')
 parser.add_argument('--startpage', help='Build the start page instead of the main thunderbird.net website.',
                     action='store_true')
@@ -24,6 +27,10 @@ if args.enus:
 else:
     langmsg = 'in all languages.'
     languages = settings.PROD_LANGUAGES
+
+if args.buildcalendar:
+    print("Building calendar files")
+    build_calendar.build_calendars()
 
 if args.startpage:
     print('Rendering start page ' + langmsg)
