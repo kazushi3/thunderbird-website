@@ -7,6 +7,7 @@ import icalendar
 import requests
 
 # This will correspond with specific api locale sets
+from calgen.mixins import GlobalHolidays
 from calgen.models.Calendar import CALENDAR_TYPES
 from calgen.models.Calendarific import Calendarific
 
@@ -33,7 +34,6 @@ def query_calendarific(api_key, country, year, calendar_type):
     }
 
     response = requests.get(API_URL, params=payload)
-
     response.raise_for_status()
 
     try:
@@ -42,8 +42,16 @@ def query_calendarific(api_key, country, year, calendar_type):
         print("Bad response from {}, {}, {}".format(country, year, calendar_type))
         return None
 
-def build_calendars():
+def mixin_events(ical, locale):
+    # Global mix ins
+    for event in GlobalHolidays.MIXINS:
+        ical.add_component(event.to_ics())
 
+    # Locale specific mix ins
+    # ...
+
+
+def build_calendars():
     try:
         api_key = os.environ['CALENDARIFIC_API_KEY']
     except KeyError:
@@ -54,13 +62,15 @@ def build_calendars():
     except KeyError:
         api_tier = 'free'
 
-    years_to_generate = 1 # 3
+    years_to_generate = 1#3
     current_year = datetime.now().year
 
     for locale in LOCALES:
         ical = icalendar.Calendar()
         ical.add('prodid', '-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN')
         ical.add('version', '2.0')
+
+        mixin_events(ical, locale)
 
         for i in range(0, years_to_generate):
             year = current_year + i
