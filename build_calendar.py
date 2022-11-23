@@ -1,13 +1,15 @@
 #!/usr/bin/python
 import sys
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 import os
 import time
 import icalendar
 import requests
 
 # This will correspond with specific api locale sets
+from calgen.models.Calendar import CALENDAR_TYPES
+from calgen.models.Calendarific import Calendarific
+
 LOCALES = [
     'CA',
     'US'
@@ -40,76 +42,6 @@ def query_calendarific(api_key, country, year, calendar_type):
         print("Bad response from {}, {}, {}".format(country, year, calendar_type))
         return None
 
-
-# Lifted from calendarific api - May not be needed
-CALENDAR_TYPES = {
-    'NATIONAL': 'national',
-    'LOCAL': 'local',
-    'RELIGIOUS': 'religious',
-    'OBSERVANCE': 'observance'
-}
-
-# Generic transformer class, extend to implement api input, by default contains ics output
-class CalendarTransformer(object):
-    def __init__(self, data = None, year = 2022):
-        self.unique_id = 0
-        self.name = ''
-        self.description = ''
-        self.iso_date = datetime(1970, 1, 1)
-        self.calendar_type = ''
-        self.year = year
-
-        # If we have data, we can pass it right along
-        if data:
-            self.from_api(data)
-
-    def from_api(self, data):
-        raise NotImplementedError()
-
-    def to_ics(self):
-        ievt = icalendar.Event()
-
-        data = {
-            'uid': "{}-{}".format(self.unique_id, self.year),
-            'last-modified': datetime.now(),
-            'dtstart': self.iso_date,
-            'dtend': self.iso_date + timedelta(days=1),
-            'summary': self.name,
-            'description': self.description,
-            'dtstamp': datetime.now(),
-            'class': 'public',
-            'transp': 'opaque' if self.calendar_type == CALENDAR_TYPES['NATIONAL'] else 'transparent',
-            'categories': 'Holidays',
-        }
-
-        for key, value in data.items():
-            ievt.add(key, value)
-
-        return ievt
-
-
-# See: https://calendarific.com/api-documentation
-class CalendarificTransformer(CalendarTransformer):
-    def __init__(self, data = None, year = 2022, calendar_type = CALENDAR_TYPES['NATIONAL']):
-        super(CalendarificTransformer, self).__init__(data, year)
-        self.calendar_type = calendar_type
-
-    def from_api(self, data):
-        self.unique_id = data['urlid']
-        self.name = data['name']
-        self.description = data['description'],
-        self.iso_date = datetime.fromisoformat(data['date']['iso'])
-
-        return self
-
-# See: https://holidayapi.com/docs
-class HolidayAPITransformer(CalendarTransformer):
-    def from_api(self, data):
-        self.unique_id = data['uuid']
-        self.name = data['name']
-        self.iso_date = datetime.fromisoformat(data['date'])
-        self.calendar_type = CALENDAR_TYPES['NATIONAL'] if bool(data['public']) else CALENDAR_TYPES['OBSERVANCE']
-
 def build_calendars():
 
     try:
@@ -134,8 +66,7 @@ def build_calendars():
             year = current_year + i
             try:
                 holidays = query_calendarific(api_key, locale, year, CALENDAR_TYPES['NATIONAL'])
-                formatted_holidays = [CalendarificTransformer(holiday, year, CALENDAR_TYPES['NATIONAL']) for holiday
-                                      in holidays]
+                formatted_holidays = [Calendarific(holiday, year, CALENDAR_TYPES['NATIONAL']) for holiday in holidays]
 
                 for holiday in formatted_holidays:
                     ical.add_component(holiday.to_ics())
