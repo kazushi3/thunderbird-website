@@ -1,6 +1,6 @@
 import datetime
 
-from calgen.models.Calendar import Calendar, CALENDAR_TYPES
+from calgen.models.Calendar import Calendar, CalendarTypes
 
 '''
 Unique holidays/observances that are missing from the calendar api source.
@@ -16,7 +16,7 @@ MIXINS = [
     ##    'name': "Thunderbird's Birthday",
     ##    'description': "Thunderbird was first released on July 3rd, 2003.",
     ##    'iso_date': datetime.datetime(2003, 7, 3),
-    ##    'calendar_type': CALENDAR_TYPES['OBSERVANCE'],
+    ##    'calendar_type': CalendarTypes.OBSERVANCE,
     ##    'rrule': {'Freq': 'Yearly'}
     ##}),
     # ... Other mixins

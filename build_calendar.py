@@ -75,7 +75,7 @@ def build_calendars():
         for i in range(0, years_to_generate):
             year = current_year + i
             try:
-                holidays = query_calendarific(api_key, locale, year, CalendarTypes.NATIONAL)
+                holidays = query_calendarific(api_key, locale, year, CalendarTypes.NATIONAL.value)
                 formatted_holidays = [Calendarific(holiday, year, CalendarTypes.NATIONAL) for holiday in holidays]
 
                 for holiday in formatted_holidays:
@@ -90,7 +90,7 @@ def build_calendars():
                     case requests.status_codes.codes.unauthorized:
                         sys.exit("Bad or malformed API key")
                     case _:
-                        print("Error {}".format(err.response.status_code))
+                        print("Error {}: {}".format(err.response.status_code, err.response.reason))
                         continue
 
         # Wait 1 second due to free api restrictions

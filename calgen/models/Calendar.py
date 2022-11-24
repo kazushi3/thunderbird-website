@@ -4,10 +4,10 @@ import icalendar
 
 ''' Note: National sets the calendary `transp` property to opaque. Every other type is transparent. '''
 class CalendarTypes(Enum):
-    NATIONAL = 0,
-    LOCAL = 1,
-    RELIGIOUS = 2,
-    OBSERVANCE = 3,
+    NATIONAL = 'national',
+    LOCAL = 'local',
+    RELIGIOUS = 'religious',
+    OBSERVANCE = 'observance',
 
 '''
 Calendar Model
