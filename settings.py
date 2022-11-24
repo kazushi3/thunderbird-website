@@ -167,6 +167,8 @@ START_CSS = {
     'start-style': ['less.old/sandstone/fonts.less', 'less.old/thunderbird/start.less']
 }
 
+CALENDARIFIC_API_URL = "https://calendarific.com/api/v2/holidays"
+
 # Country Code : Calendar Name
 CALENDAR_LOCALES = {
     'AL': 'Albania',

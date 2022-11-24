@@ -6,9 +6,8 @@ import os
 import time
 import icalendar
 import requests
-
-# This will correspond with specific api locale sets
 import settings
+
 from calgen.mixins import GlobalHolidays
 from calgen.models.Calendar import CalendarTypes
 from calgen.models.Calendarific import Calendarific
@@ -17,7 +16,6 @@ class CountryNotSupportedException(Exception):
     def __init__(self, country):
         self.country = country
 
-API_URL = "https://calendarific.com/api/v2/holidays"
 
 def query_calendarific(api_key, country, year, calendar_type):
     if country not in settings.CALENDAR_LOCALES:
@@ -30,13 +28,13 @@ def query_calendarific(api_key, country, year, calendar_type):
         'type': calendar_type
     }
 
-    response = requests.get(API_URL, params=payload)
+    response = requests.get(settings.CALENDARIFIC_API_URL, params=payload)
     response.raise_for_status()
 
     try:
         return response.json()['response']['holidays']
     except KeyError:
-        print("Bad response from {}, {}, {}".format(country, year, calendar_type))
+        print("Malformed response for {}, {}, {}".format(country, year, calendar_type))
         return None
 
 def mixin_events(ical, locale):
@@ -46,7 +44,6 @@ def mixin_events(ical, locale):
 
     # Locale specific mix ins
     # ...
-
 
 def build_calendars(locales):
     try:
@@ -74,28 +71,34 @@ def build_calendars(locales):
 
         mixin_events(ical, locale)
 
+        # Wait 1 second due to free api restrictions
+        if is_free_tier:
+            time.sleep(1)
+
         for i in range(0, years_to_generate):
             year = current_year + i
-            try:
-                holidays = query_calendarific(api_key, locale, year, CalendarTypes.NATIONAL.value)
-                formatted_holidays = [Calendarific(holiday, year, CalendarTypes.NATIONAL) for holiday in holidays]
 
-                for holiday in formatted_holidays:
-                    ical.add_component(holiday.to_ics())
-            except requests.HTTPError as err:
-                match err.response.status_code:
-                    # API limit reached, only valid for free tier
-                    case requests.status_codes.codes.too_many_requests:
-                        sys.exit("API limit reached")
-                    # Bad API key
-                    case requests.status_codes.codes.unauthorized:
-                        sys.exit("Bad or malformed API key")
-                    case _:
-                        print("Error {}: {}".format(err.response.status_code, err.response.reason))
-                        continue
-            except CountryNotSupportedException as err:
-                print("Country code {} is not a supported locale.".format(err.country))
-                continue
+            for calendar_type in [CalendarTypes.NATIONAL, CalendarTypes.OBSERVANCE]:
+                try:
+                    holidays = query_calendarific(api_key, locale, year, calendar_type.value)
+                    formatted_holidays = [Calendarific(holiday, year, calendar_type) for holiday in holidays]
+
+                    for holiday in formatted_holidays:
+                        ical.add_component(holiday.to_ics())
+                except requests.HTTPError as err:
+                    match err.response.status_code:
+                        # API limit reached, only valid for free tier
+                        case requests.status_codes.codes.too_many_requests:
+                            sys.exit("API limit reached")
+                        # Bad API key
+                        case requests.status_codes.codes.unauthorized:
+                            sys.exit("Bad or malformed API key")
+                        case _:
+                            print("Error {}: {}".format(err.response.status_code, err.response.reason))
+                            continue
+                except CountryNotSupportedException as err:
+                    print("Country code {} is not a supported locale.".format(err.country))
+                    continue
 
         calendar_name = '{}Holidays.ics'.format(country_name)
 
@@ -108,10 +111,6 @@ def build_calendars(locales):
 
         with open('media/caldata/autogen/{}'.format(calendar_name), 'wb') as fh:
             fh.write(ical.to_ical())
-
-        # Wait 1 second due to free api restrictions
-        if is_free_tier:
-            time.sleep(1)
 
 
     print("Re-building calendars.json")
