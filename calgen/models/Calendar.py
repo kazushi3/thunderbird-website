@@ -1,20 +1,18 @@
-from datetime import datetime, timedelta, date
-
-# Generic transformer class, extend to implement api input, by default contains ics output
+from datetime import datetime, timedelta
+from enum import Enum
 import icalendar
 
-CALENDAR_TYPES = {
-    'NATIONAL': 'national',
-    'LOCAL': 'local',
-    'RELIGIOUS': 'religious',
-    'OBSERVANCE': 'observance'
-}
+''' Note: National sets the calendary `transp` property to opaque. Every other type is transparent. '''
+class CalendarTypes(Enum):
+    NATIONAL = 0,
+    LOCAL = 1,
+    RELIGIOUS = 2,
+    OBSERVANCE = 3,
 
 '''
 Calendar Model
 
 Base class for API / package implementations
-
 Extend and implement from_api to standardize data.
 
 Note: `self.rrule` is mainly used for mixins.
@@ -54,7 +52,7 @@ class Calendar(object):
             'description': self.description,
             'dtstamp': datetime.now(),
             'class': 'public',
-            'transp': 'opaque' if self.calendar_type == CALENDAR_TYPES['NATIONAL'] else 'transparent',
+            'transp': 'opaque' if self.calendar_type == CalendarTypes.NATIONAL else 'transparent',
             'categories': ['Holidays'],
             'rrule': self.rrule
         }

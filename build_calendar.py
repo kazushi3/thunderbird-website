@@ -8,7 +8,7 @@ import requests
 
 # This will correspond with specific api locale sets
 from calgen.mixins import GlobalHolidays
-from calgen.models.Calendar import CALENDAR_TYPES
+from calgen.models.Calendar import CalendarTypes
 from calgen.models.Calendarific import Calendarific
 
 LOCALES = [
@@ -62,7 +62,7 @@ def build_calendars():
     except KeyError:
         api_tier = 'free'
 
-    years_to_generate = 1#3
+    years_to_generate = 3
     current_year = datetime.now().year
 
     for locale in LOCALES:
@@ -75,22 +75,20 @@ def build_calendars():
         for i in range(0, years_to_generate):
             year = current_year + i
             try:
-                holidays = query_calendarific(api_key, locale, year, CALENDAR_TYPES['NATIONAL'])
-                formatted_holidays = [Calendarific(holiday, year, CALENDAR_TYPES['NATIONAL']) for holiday in holidays]
+                holidays = query_calendarific(api_key, locale, year, CalendarTypes.NATIONAL)
+                formatted_holidays = [Calendarific(holiday, year, CalendarTypes.NATIONAL) for holiday in holidays]
 
                 for holiday in formatted_holidays:
                     ical.add_component(holiday.to_ics())
 
             except requests.HTTPError as err:
                 match err.response.status_code:
-                    # API limit reached
+                    # API limit reached, only valid for free tier
                     case requests.status_codes.codes.too_many_requests:
-                        print("API limit reached, breaking from loop")
-                        break
+                        sys.exit("API limit reached")
                     # Bad API key
                     case requests.status_codes.codes.unauthorized:
-                        print("Bad or missing API key")
-                        break
+                        sys.exit("Bad or malformed API key")
                     case _:
                         print("Error {}".format(err.response.status_code))
                         continue

@@ -1,6 +1,5 @@
-
 from datetime import datetime
-from calgen.models.Calendar import Calendar, CALENDAR_TYPES
+from calgen.models.Calendar import Calendar, CalendarTypes
 
 '''
 API Documentation available at: https://holidayapi.com/docs
@@ -12,4 +11,4 @@ class HolidayAPI(Calendar):
         self.unique_id = data['uuid']
         self.name = data['name']
         self.iso_date = datetime.fromisoformat(data['date'])
-        self.calendar_type = CALENDAR_TYPES['NATIONAL'] if bool(data['public']) else CALENDAR_TYPES['OBSERVANCE']
+        self.calendar_type = CalendarTypes.NATIONAL if bool(data['public']) else CalendarTypes.OBSERVANCE
