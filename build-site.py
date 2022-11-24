@@ -1,6 +1,6 @@
 import argparse
 
-import build_calendar
+#import build_calendar
 import builder
 import feedparser
 import helper
@@ -10,7 +10,7 @@ from datetime import date
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enus', help='Only build the en-US language.', action='store_true')
-parser.add_argument('--buildcalendar', help='Only build the en-US language.', action='store_true')
+parser.add_argument('--buildcalendar', help='Build the ics calendar files.', action='store_true')
 parser.add_argument('--debug', help='Log output with more detailed build information.', action='store_true')
 parser.add_argument('--startpage', help='Build the start page instead of the main thunderbird.net website.',
                     action='store_true')
@@ -28,9 +28,9 @@ else:
     langmsg = 'in all languages.'
     languages = settings.PROD_LANGUAGES
 
-if args.buildcalendar:
-    print("Building calendar files")
-    build_calendar.build_calendars()
+#if args.buildcalendar:
+#    print("Building calendar files")
+#    build_calendar.build_calendars()
 
 if args.startpage:
     print('Rendering start page ' + langmsg)
@@ -41,7 +41,7 @@ else:
     # Prepare data and build main website.
     version = helper.thunderbird_desktop.latest_version('release')
     beta_version = helper.thunderbird_desktop.latest_version('beta')
-    caldata = helper.load_calendar_json('media/caldata/calendars.json')
+    caldata = helper.load_calendar_json('media/caldata/autogen/calendars.json')
     context = {'current_year': date.today().year,
                'platform': 'desktop',
                'query': '',
