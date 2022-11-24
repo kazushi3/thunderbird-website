@@ -15,7 +15,7 @@ class Calendarific(Calendar):
     def from_api(self, data):
         self.unique_id = data['urlid']
         self.name = data['name']
-        self.description = data['description'],
+        self.description = data['description']
         self.iso_date = datetime.fromisoformat(data['date']['iso'])
 
         return self
