@@ -24,13 +24,17 @@ args = parser.parse_args()
 if args.enus:
     langmsg = 'in en-US only.'
     languages = ['en-US']
+    calendar_locales = [{
+        'US': 'United States',
+    }]
 else:
     langmsg = 'in all languages.'
     languages = settings.PROD_LANGUAGES
+    calendar_locales = settings.CALENDAR_LOCALES
 
 #if args.buildcalendar:
 #    print("Building calendar files")
-#    build_calendar.build_calendars()
+#    build_calendar.build_calendars(calendar_locales)
 
 if args.startpage:
     print('Rendering start page ' + langmsg)
