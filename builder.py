@@ -247,6 +247,9 @@ class Site(object):
         self.build_notes_rss(feed_items)
 
     def build_notes_rss(self, feed_items):
+        if len(feed_items) == 0:
+            return
+
         # RSS follows the notes, being only en-us
         if self.lang != 'en-US':
             self._switch_lang('en-US')
