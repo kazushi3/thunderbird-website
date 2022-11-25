@@ -1,6 +1,6 @@
 import argparse
 
-#import build_calendar
+import build_calendar
 import os.path
 
 import builder
@@ -12,10 +12,10 @@ from datetime import date
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enus', help='Only build the en-US language.', action='store_true')
-parser.add_argument('--buildcalendar', help='Build the ics calendar files.', action='store_true')
 parser.add_argument('--debug', help='Log output with more detailed build information.', action='store_true')
 parser.add_argument('--startpage', help='Build the start page instead of the main thunderbird.net website.',
                     action='store_true')
+parser.add_argument('--buildcalendars', help='Builds the ics calendar files, instead of the websites.', action='store_true')
 parser.add_argument('--watch', help='Rebuild when template and asset dirs are changed, and run a server on localhost.',
                     action='store_true')
 parser.add_argument('--port', const=8000, default=8000, type=int,
@@ -26,22 +26,19 @@ args = parser.parse_args()
 if args.enus:
     langmsg = 'in en-US only.'
     languages = ['en-US']
-    calendar_locales = [{
-        'US': 'United States',
-    }]
+    calendar_locales = { 'US': settings.CALENDAR_LOCALES.get('US') }
 else:
     langmsg = 'in all languages.'
     languages = settings.PROD_LANGUAGES
     calendar_locales = settings.CALENDAR_LOCALES
 
-#if args.buildcalendar:
-#    print("Building calendar files")
-#    build_calendar.build_calendars(calendar_locales)
-
 if args.startpage:
     print('Rendering start page ' + langmsg)
     site = builder.Site(languages, settings.START_PATH, settings.START_RENDERPATH, settings.START_CSS, debug=args.debug)
     site.build_startpage()
+elif args.buildcalendars:
+    print("Building calendar files")
+    build_calendar.build_calendars(calendar_locales)
 else:
     print('Rendering www.thunderbird.net ' + langmsg)
     # Prepare data and build main website.
