@@ -86,15 +86,22 @@ def build_calendars(locales):
                     for holiday in formatted_holidays:
                         ical.add_component(holiday.to_ics())
                 except requests.HTTPError as err:
+                    response = err.response.json()
+
+                    # Generic error message
+                    error_response = "{}: {}. ".format(err.response.status_code, err.response.reason)
+
+                    # If we have the error_detail key, append that.
+                    if response['meta'].get('error_detail'):
+                        error_response += response['meta'].get('error_detail')
+
                     match err.response.status_code:
-                        # API limit reached, only valid for free tier
-                        case requests.status_codes.codes.too_many_requests:
-                            sys.exit("API limit reached")
-                        # Bad API key
-                        case requests.status_codes.codes.unauthorized:
-                            sys.exit("Bad or malformed API key")
+                        # Too many requests, upgrade required are API limit reached.
+                        # Unauthorized is malformed or bad API key.
+                        case (requests.status_codes.codes.too_many_requests|requests.status_codes.codes.upgrade_required|requests.status_codes.codes.unauthorized):
+                            sys.exit(error_response)
                         case _:
-                            print("Error {}: {}".format(err.response.status_code, err.response.reason))
+                            print(error_response)
                             continue
                 except CountryNotSupportedException as err:
                     print("Country code {} is not a supported locale.".format(err.country))
