@@ -1,6 +1,8 @@
 import argparse
 
 #import build_calendar
+import os.path
+
 import builder
 import feedparser
 import helper
@@ -45,7 +47,12 @@ else:
     # Prepare data and build main website.
     version = helper.thunderbird_desktop.latest_version('release')
     beta_version = helper.thunderbird_desktop.latest_version('beta')
-    caldata = helper.load_calendar_json('media/caldata/autogen/calendars.json')
+
+    if os.path.exists('media/caldata/autogen/calendars.json'):
+        caldata = helper.load_calendar_json('media/caldata/autogen/calendars.json')
+    else:
+        caldata = helper.load_calendar_json('media/caldata/calendars.json')
+
     context = {'current_year': date.today().year,
                'platform': 'desktop',
                'query': '',
