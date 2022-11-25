@@ -100,7 +100,7 @@ def build_calendars(locales):
                     print("Country code {} is not a supported locale.".format(err.country))
                     continue
 
-        calendar_name = '{}Holidays.ics'.format(country_name)
+        calendar_name = '{}Holidays.ics'.format(country_name.replace(' ', ''))
 
         calendar_metadata.append({
             'country': country_name,
