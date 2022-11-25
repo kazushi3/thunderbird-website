@@ -247,6 +247,7 @@ class Site(object):
         self.build_notes_rss(feed_items)
 
     def build_notes_rss(self, feed_items):
+        """ Builds the release notes rss feed.xml file. Like build_notes, this is en-US only. """
         if len(feed_items) == 0:
             return
 
