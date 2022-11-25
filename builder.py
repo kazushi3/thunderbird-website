@@ -251,15 +251,25 @@ class Site(object):
         if self.lang != 'en-US':
             self._switch_lang('en-US')
 
-        feed = feedgenerator.DefaultFeed("Thunderbird Release Notes (Release Channel)",
-                                         settings.CANONICAL_URL + helper.thunderbird_url('releases'),
-                                         "Thunderbird release notes are specific to each version of the application. Select your version from the list below to see the release notes for it.")
+        author_name = "Thunderbird"
+        author_link = settings.CANONICAL_URL
 
+        feed = feedgenerator.DefaultFeed("Thunderbird Release Notes",
+                                         settings.CANONICAL_URL + helper.thunderbird_url('releases'),
+                                         "Thunderbird Release Notes feed provides a simple way to keep up to date with Thunderbird releases.",
+                                         self.lang,
+                                         author_name=author_name,
+                                         author_link=author_link)
+
+        # Sort by release date desc
         feed_items.sort(key=lambda i : i['notes']['release'].get('release_date'), reverse=True)
 
         for item in feed_items:
-            if 'beta' in item['version']:
-                continue
+            title = "Thunderbird Release Notes {}".format(item['version'])
+
+            if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in item['version']:
+                # Remove redundant beta from title
+                title = "Thunderbird Beta Notes {}".format(item['version'].replace('beta', ''))
 
             release_notes = item['notes'].get('release')
 
@@ -267,14 +277,19 @@ class Site(object):
                 print("Couldn't find release key for version {}, this shouldn't happen.".format(item['version']))
                 continue
 
+            link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, item['version'])
+            description = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(item['version'], link)
+
             feed.add_item(
-                title="Thunderbird Release {}".format(item['version']),
-                link="{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, item['version']),
-                description=release_notes.get('text'),
-                pubdate=release_notes.get('release_date')
+                title=title,
+                link=link,
+                description=description,
+                pubdate=release_notes.get('release_date'),
+                author_name=author_name,
+                author_link=author_link
             )
 
-        with open("thunderbird.net/en-US/thunderbird/releases/feed.xml", "wb") as fh:
+        with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'feed.xml'), "wb") as fh:
             feed.write(fh, 'utf-8')
 
     def build_assets(self):

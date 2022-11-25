@@ -167,3 +167,5 @@ WEBSITE_JS = {
 START_CSS = {
     'start-style': ['less.old/sandstone/fonts.less', 'less.old/thunderbird/start.less']
 }
+
+SHOW_BETA_NOTES_IN_RSS_FEED = True
