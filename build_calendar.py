@@ -12,15 +12,7 @@ from calgen.mixins import GlobalHolidays
 from calgen.models.Calendar import CalendarTypes
 from calgen.models.Calendarific import Calendarific
 
-class CountryNotSupportedException(Exception):
-    def __init__(self, country):
-        self.country = country
-
-
 def query_calendarific(api_key, country, year, calendar_type):
-    if country not in settings.CALENDAR_LOCALES:
-        raise CountryNotSupportedException(country)
-
     payload = {
         'api_key': api_key,
         'country': country,
@@ -46,6 +38,9 @@ def mixin_events(ical, locale):
     # ...
 
 def build_calendars(locales):
+    if len(locales.items()) == 0:
+        sys.exit("No locales specified, skipping calendar generation.")
+
     try:
         api_key = os.environ['CALENDARIFIC_API_KEY']
     except KeyError:
@@ -61,6 +56,10 @@ def build_calendars(locales):
     date_span = "{}-{}".format(current_year, current_year + years_to_generate)
 
     calendar_metadata = []
+
+    # Check if the folders exist
+    if not os.path.exists(settings.CALDATA_AUTOGEN_URL):
+        os.mkdir(settings.CALDATA_AUTOGEN_URL)
 
     print("Querying calendar data from provider")
 
@@ -99,8 +98,6 @@ def build_calendars(locales):
                     # Too many requests, upgrade required are API limit reached.
                     # Unauthorized is malformed or bad API key.
                     sys.exit(error_response)
-                except CountryNotSupportedException as err:
-                    sys.exit("Country code {} is not a supported locale.".format(err.country))
 
         calendar_name = '{}Holidays.ics'.format(country_name.replace(' ', ''))
 
@@ -111,10 +108,10 @@ def build_calendars(locales):
             'authors': 'Autogenerator'
         })
 
-        with open('media/caldata/autogen/{}'.format(calendar_name), 'wb') as fh:
+        with open('{}{}'.format(settings.CALDATA_AUTOGEN_URL, calendar_name), 'wb') as fh:
             fh.write(ical.to_ical())
 
 
     print("Re-building calendars.json")
-    with open('media/caldata/autogen/calendars.json', 'w') as fh:
+    with open('{}/calendars.json'.format(settings.CALDATA_AUTOGEN_URL), 'w') as fh:
         fh.write(json.dumps(calendar_metadata, indent=2))

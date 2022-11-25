@@ -75,6 +75,8 @@ START_RENDERPATH = 'site'
 
 CALDATA_URL = MEDIA_URL + '/caldata/'
 
+CALDATA_AUTOGEN_URL = 'media/caldata/autogen/'
+
 # path to product-details json files
 JSON_PATH = 'product-details/public/1.0'
 
