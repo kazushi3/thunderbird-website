@@ -11,6 +11,7 @@ import sys
 import time
 import translate
 import webassets
+import feedgenerator
 
 if sys.version_info[0] == 3:
     from socketserver import TCPServer
@@ -204,6 +205,7 @@ class Site(object):
         if self.lang != 'en-US':
             self._switch_lang('en-US')
 
+        feed_items = []
         notelist = releasenotes.notes
         note_template = self._env.get_template('_includes/release-notes.html')
         self._env.globals.update(feedback=releasenotes.settings["feedback"], bugzilla=releasenotes.settings["bugzilla"])
@@ -229,6 +231,11 @@ class Site(object):
             logger.info("Rendering {0}/index.html...".format(target))
             sysreq_template.stream().dump(os.path.join(target, 'index.html'))
 
+            feed_items.append({
+                'version': k,
+                'notes': n,
+            })
+
         # Build htaccess files for sysreq and release notes redirects.
         sysreq_path = os.path.join(self.renderpath, 'system-requirements')
         notes_path = os.path.join(self.renderpath, 'notes')
@@ -236,6 +243,39 @@ class Site(object):
         write_htaccess(sysreq_path, settings.CANONICAL_URL + helper.thunderbird_url('system-requirements'))
         write_htaccess(notes_path, settings.CANONICAL_URL + helper.thunderbird_url('releasenotes'))
         write_htaccess(beta_notes_path, settings.CANONICAL_URL + helper.thunderbird_url('releasenotes', channel="beta"))
+
+        self.build_notes_rss(feed_items)
+
+    def build_notes_rss(self, feed_items):
+        # RSS follows the notes, being only en-us
+        if self.lang != 'en-US':
+            self._switch_lang('en-US')
+
+        feed = feedgenerator.DefaultFeed("Thunderbird Release Notes (Release Channel)",
+                                         settings.CANONICAL_URL + helper.thunderbird_url('releases'),
+                                         "Thunderbird release notes are specific to each version of the application. Select your version from the list below to see the release notes for it.")
+
+        feed_items.sort(key=lambda i : i['notes']['release'].get('release_date'), reverse=True)
+
+        for item in feed_items:
+            if 'beta' in item['version']:
+                continue
+
+            release_notes = item['notes'].get('release')
+
+            if release_notes is None:
+                print("Couldn't find release key for version {}, this shouldn't happen.".format(item['version']))
+                continue
+
+            feed.add_item(
+                title="Thunderbird Release {}".format(item['version']),
+                link="{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, item['version']),
+                description=release_notes.get('text'),
+                pubdate=release_notes.get('release_date')
+            )
+
+        with open("thunderbird.net/en-US/thunderbird/releases/feed.xml", "wb") as fh:
+            feed.write(fh, 'utf-8')
 
     def build_assets(self):
         """Build assets, that is, bundle and compile the LESS and JS files in `settings.ASSETS`."""
