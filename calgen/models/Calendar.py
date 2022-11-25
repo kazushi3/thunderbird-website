@@ -2,22 +2,23 @@ from datetime import datetime, timedelta
 from enum import Enum
 import icalendar
 
-''' Note: National sets the calendary `transp` property to opaque. Every other type is transparent. '''
 class CalendarTypes(Enum):
+    """ Note: National sets the calendary `transp` property to opaque. Every other type is transparent. """
     NATIONAL = 'national',
     LOCAL = 'local',
     RELIGIOUS = 'religious',
     OBSERVANCE = 'observance',
 
-'''
-Calendar Model
 
-Base class for API / package implementations
-Extend and implement from_api to standardize data.
-
-Note: `self.rrule` is mainly used for mixins.
-'''
 class Calendar(object):
+    """
+    Calendar Model
+
+    Base class for API / package implementations
+    Extend and implement from_api to standardize data.
+
+    Note: `self.rrule` is mainly used for mixins.
+    """
     def __init__(self, data = None, year = 2022):
         self.unique_id = 0
         self.name = ''

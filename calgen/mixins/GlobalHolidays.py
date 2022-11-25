@@ -7,7 +7,6 @@ Unique holidays/observances that are missing from the calendar api source.
 
 These are mixed in before we pull data from the api source, and should use rrules.
 '''
-
 MIXINS = [
     # Sample Event
     # Thunderbird's Birthday

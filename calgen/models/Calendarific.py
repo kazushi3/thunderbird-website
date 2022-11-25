@@ -1,13 +1,12 @@
-
 from datetime import datetime
 from calgen.models.Calendar import Calendar, CalendarTypes
 
-'''
-API Documentation available at: https://calendarific.com/api-documentation
-
-Instantiate this calendar api class to parse Calendarific api data
-'''
 class Calendarific(Calendar):
+    """
+    API Documentation available at: https://calendarific.com/api-documentation
+
+    Instantiate this calendar api class to parse Calendarific api data
+    """
     def __init__(self, data = None, year = 2022, calendar_type = CalendarTypes.NATIONAL):
         super(Calendarific, self).__init__(data, year)
         self.calendar_type = calendar_type

@@ -13,6 +13,7 @@ from calgen.models.Calendar import CalendarTypes
 from calgen.models.Calendarific import Calendarific
 
 def query_calendarific(api_key, country, year, calendar_type):
+    """ Queries calendarific, will return either the response data, or None if the api returns garbage data. """
     payload = {
         'api_key': api_key,
         'country': country,
@@ -30,6 +31,7 @@ def query_calendarific(api_key, country, year, calendar_type):
         return None
 
 def mixin_events(ical, locale):
+    """ Mixes in additional events that would be missed by a provider. Currently, we only account for global mixins. """
     # Global mix ins
     for event in GlobalHolidays.MIXINS:
         ical.add_component(event.to_ics())
@@ -38,6 +40,7 @@ def mixin_events(ical, locale):
     # ...
 
 def build_calendars(locales):
+    """ Entry function for build_calendar.py script, will query providers, and build the actual .ics file """
     if len(locales.items()) == 0:
         sys.exit("No locales specified, skipping calendar generation.")
 

@@ -1,12 +1,12 @@
 from datetime import datetime
 from calgen.models.Calendar import Calendar, CalendarTypes
 
-'''
-API Documentation available at: https://holidayapi.com/docs
-
-Instantiate this calendar api class to parse HolidayAPI data
-'''
 class HolidayAPI(Calendar):
+    """
+    API Documentation available at: https://holidayapi.com/docs
+
+    Instantiate this calendar api class to parse HolidayAPI data
+    """
     def from_api(self, data):
         self.unique_id = data['uuid']
         self.name = data['name']
