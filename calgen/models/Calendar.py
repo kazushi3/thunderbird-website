@@ -34,12 +34,12 @@ class Calendar(object):
 
     # By default, we'll just initialize ourselves
     def from_api(self, data):
-        self.unique_id = data['unique_id']
-        self.name = data['name']
-        self.description = data['description']
-        self.iso_date = data['iso_date']
-        self.calendar_type = data['calendar_type']
-        self.rrule = data['rrule']
+        self.unique_id = data.get('unique_id')
+        self.name = data.get('name')
+        self.description = data.get('description')
+        self.iso_date = data.get('iso_date')
+        self.calendar_type = data.get('calendar_type')
+        self.rrule = data.get('rrule')
 
     def to_ics(self):
         ievt = icalendar.Event()
