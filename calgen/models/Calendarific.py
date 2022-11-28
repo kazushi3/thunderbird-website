@@ -12,9 +12,14 @@ class Calendarific(Calendar):
         self.calendar_type = calendar_type
 
     def from_api(self, data):
-        self.unique_id = data['urlid']
-        self.name = data['name']
-        self.description = data['description']
-        self.iso_date = datetime.fromisoformat(data['date']['iso'])
+        date = data.get('date')
+        iso_date = None
+        if date is not None:
+            iso_date = datetime.fromisoformat(date.get('iso'))
+
+        self.unique_id = data.get('urlid')
+        self.name = data.get('name')
+        self.description = data.get('description')
+        self.iso_date = iso_date
 
         return self
