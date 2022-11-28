@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import build_calendar
 import os.path
@@ -9,6 +10,8 @@ import helper
 import settings
 
 from datetime import date
+
+from calgen.providers.CalendarificProvider import CalendarificProvider
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enus', help='Only build the en-US language.', action='store_true')
@@ -38,7 +41,14 @@ if args.startpage:
     site.build_startpage()
 elif args.buildcalendars:
     print("Building calendar files")
-    build_calendar.build_calendars(calendar_locales)
+
+    try:
+        api_key = os.environ['CALENDARIFIC_API_KEY']
+    except KeyError:
+        sys.exit("No `CALENDARIFIC_API_KEY` defined.")
+
+
+    build_calendar.build_calendars(CalendarificProvider({'api_key': api_key}), calendar_locales)
 else:
     print('Rendering www.thunderbird.net ' + langmsg)
     # Prepare data and build main website.
