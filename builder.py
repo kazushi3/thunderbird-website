@@ -294,12 +294,13 @@ class Site(object):
             # Hint to our svg helper function to skip svgs for this render
             self._env.globals.update({'rss_build': True})
             content = content_template.render({'version_number': version, 'link': link})
+            description = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(version, link)
 
             entry = feed.add_entry()
             entry.title(title)
             entry.link({'href': releases_page})
-            entry.description(description=content[:255], isSummary=True)
-            entry.content(content)
+            entry.description(description=description)
+            entry.content(content, type="CDATA")
             entry.author({'name': author_name, 'uri': author_link})
 
             release_date = release_notes.get('release_date')
