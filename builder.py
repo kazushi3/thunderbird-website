@@ -231,11 +231,7 @@ class Site(object):
             logger.info("Rendering {0}/index.html...".format(target))
             sysreq_template.stream().dump(os.path.join(target, 'index.html'))
 
-            feed_items.append({
-                'version': k,
-                'notes': n,
-            })
-
+            feed_items.append((k, n))
         # Build htaccess files for sysreq and release notes redirects.
         sysreq_path = os.path.join(self.renderpath, 'system-requirements')
         notes_path = os.path.join(self.renderpath, 'notes')
@@ -265,33 +261,46 @@ class Site(object):
                                          author_name=author_name,
                                          author_link=author_link)
 
-        # Sort by release date desc
-        feed_items.sort(key=lambda i : i['notes']['release'].get('release_date'), reverse=True)
+        # Sort notes by release date
+        feed_items.sort(key=lambda i: i[1]['release'].get('release_date'), reverse=True)
+
+        content_template = self._env.get_template('_includes/release-notes-content.html')
 
         for item in feed_items:
-            title = "Thunderbird Release Notes {}".format(item['version'])
+            version = item[0]
+            note = item[1]
 
-            if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in item['version']:
+            title = "Thunderbird Release Notes {}".format(version)
+
+            if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in version:
                 # Remove redundant beta from title
-                title = "Thunderbird Beta Notes {}".format(item['version'].replace('beta', ''))
+                title = "Thunderbird Beta Notes {}".format(version.replace('beta', ''))
 
-            release_notes = item['notes'].get('release')
+            release_notes = note.get('release')
 
             if release_notes is None:
-                print("Couldn't find release key for version {}, this shouldn't happen.".format(item['version']))
+                print("Couldn't find release key for version {}, this shouldn't happen.".format(version))
                 continue
 
-            link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, item['version'])
-            description = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(item['version'], link)
+            link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, version)
+
+            # Mix in our notes for the template
+            self._env.globals.update(**note)
+            # Hint to our svg helper function to skip svgs for this render
+            self._env.globals.update({'rss_build': True})
+            closing_remark = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(version, link)
+            content = unicode("<![CDATA[{}]]>").format(content_template.render({'version_number': version, 'link': link}))
 
             feed.add_item(
                 title=title,
                 link=link,
-                description=description,
+                description=content,
                 pubdate=release_notes.get('release_date'),
                 author_name=author_name,
                 author_link=author_link
             )
+
+        self._env.globals.update({'rss_build': False})
 
         with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'feed.xml'), "wb") as fh:
             feed.write(fh, 'utf-8')
@@ -354,6 +363,7 @@ class Site(object):
         if assets:
             logger.info("Building assets...")
             self.build_assets()
+
 
 
 class UpdateHandler(FileSystemEventHandler):
