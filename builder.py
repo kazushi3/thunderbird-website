@@ -1,5 +1,8 @@
 import datetime
 import errno
+
+from feedgen.feed import FeedGenerator
+
 import helper
 import logging
 import multiprocessing
@@ -254,12 +257,14 @@ class Site(object):
         author_name = "Thunderbird"
         author_link = settings.CANONICAL_URL
 
-        feed = feedgenerator.DefaultFeed("Thunderbird Release Notes",
-                                         settings.CANONICAL_URL + helper.thunderbird_url('releases'),
-                                         "Thunderbird Release Notes feed provides a simple way to keep up to date with Thunderbird releases.",
-                                         self.lang,
-                                         author_name=author_name,
-                                         author_link=author_link)
+        releases_page = settings.CANONICAL_URL + helper.thunderbird_url('releases')
+
+        feed = FeedGenerator()
+        feed.title("Thunderbird Release Notes")
+        feed.author({'name': author_name, 'uri': author_link})
+        feed.link({'href': releases_page})
+        feed.subtitle("Thunderbird Release Notes feed provides a simple way to keep up to date with Thunderbird releases.")
+        feed.language(self.lang)
 
         # Sort notes by release date
         feed_items.sort(key=lambda i: i[1]['release'].get('release_date'), reverse=True)
@@ -288,22 +293,26 @@ class Site(object):
             self._env.globals.update(**note)
             # Hint to our svg helper function to skip svgs for this render
             self._env.globals.update({'rss_build': True})
-            closing_remark = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(version, link)
-            content = unicode("<![CDATA[{}]]>").format(content_template.render({'version_number': version, 'link': link}))
+            content = content_template.render({'version_number': version, 'link': link})
 
-            feed.add_item(
-                title=title,
-                link=link,
-                description=content,
-                pubdate=release_notes.get('release_date'),
-                author_name=author_name,
-                author_link=author_link
-            )
+            entry = feed.add_entry()
+            entry.title(title)
+            entry.link({'href': releases_page})
+            entry.description(description=content[:255], isSummary=True)
+            entry.content(content)
+            entry.author({'name': author_name, 'uri': author_link})
+
+            release_date = release_notes.get('release_date')
+
+            if release_date:
+                # Force it to UTC, pubDate checks for tzinfo
+                release_date = parse("{}Z".format(release_date.isoformat()))
+                entry.pubDate(release_date)
 
         self._env.globals.update({'rss_build': False})
 
         with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'feed.xml'), "wb") as fh:
-            feed.write(fh, 'utf-8')
+            fh.write(feed.rss_str())
 
     def build_assets(self):
         """Build assets, that is, bundle and compile the LESS and JS files in `settings.ASSETS`."""

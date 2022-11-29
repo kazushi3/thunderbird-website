@@ -29,4 +29,4 @@ webassets>=0.12.1
 webob>=1.7.3
 
 python-dateutil~=2.8.2
-feedgenerator~=1.9.2
+feedgen~=0.9.0
