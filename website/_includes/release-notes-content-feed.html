@@ -8,9 +8,11 @@
 
   {% for group in range(release.groups|length) %}
     {% if release.groups[group] %}
-      <h2>
-        {{ release.groups[group] }}
-      </h2>
+      {% if release.groups[group] != "" %}
+        <h2>
+          {{ release.groups[group] }}
+        </h2>
+      {% endif %}
       {% set section.name = "" %}
     {% endif %}
 
