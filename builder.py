@@ -266,20 +266,28 @@ class Site(object):
         feed.subtitle("Thunderbird Release Notes feed provides a simple way to keep up to date with Thunderbird releases.")
         feed.language(self.lang)
 
+        def sort_version_by_release_date(i):
+            """ Sort using the note's release date. """
+            return i[1]['release'].get('release_date')
+
         # Sort notes by release date
-        feed_items.sort(key=lambda i: i[1]['release'].get('release_date'), reverse=True)
+        feed_items.sort(key=sort_version_by_release_date, reverse=True)
 
-        content_template = self._env.get_template('_includes/release-notes-content.html')
+        releases = filter(lambda i: 'beta' not in i[0], feed_items)
+        betas = filter(lambda i: 'beta' in i[0], feed_items)
 
-        for item in feed_items:
+        # We only want to display the last 10 releases, and the last 5 betas
+        feed_items_mixed = releases[:10] + betas[:5]
+        # Sort again by release date
+        feed_items_mixed.sort(key=sort_version_by_release_date, reverse=True)
+
+        content_template = self._env.get_template('_includes/release-notes-content-feed.html')
+
+        self._env.globals.update(feedback=releasenotes.settings["feedback"], bugzilla=releasenotes.settings["bugzilla"])
+
+        for item in feed_items_mixed:
             version = item[0]
             note = item[1]
-
-            title = "Thunderbird Release Notes {}".format(version)
-
-            if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in version:
-                # Remove redundant beta from title
-                title = "Thunderbird Beta Notes {}".format(version.replace('beta', ''))
 
             release_notes = note.get('release')
 
@@ -287,19 +295,25 @@ class Site(object):
                 print("Couldn't find release key for version {}, this shouldn't happen.".format(version))
                 continue
 
+            title = "Release {}".format(version)
+
+            self._env.globals.update(channel='Release', channel_name='Release')
+
+            if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in version:
+                # Remove redundant beta from title
+                title = "Beta {}".format(version.replace('beta', ''))
+                self._env.globals.update(channel='Beta', channel_name='Beta')
+
             link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, version)
 
             # Mix in our notes for the template
             self._env.globals.update(**note)
-            # Hint to our svg helper function to skip svgs for this render
-            self._env.globals.update({'rss_build': True})
             content = content_template.render({'version_number': version, 'link': link})
-            description = "For more on all the new features in Thunderbird {0}, see <a href=\"{1}\">What's New in Thunderbird {0}</a>".format(version, link)
 
             entry = feed.add_entry()
             entry.title(title)
-            entry.link({'href': releases_page})
-            entry.description(description=description)
+            entry.link({'href': link})
+            entry.description(description=content)
             entry.content(content, type="CDATA")
             entry.author({'name': author_name, 'uri': author_link})
 
@@ -309,8 +323,6 @@ class Site(object):
                 # Force it to UTC, pubDate checks for tzinfo
                 release_date = parse("{}Z".format(release_date.isoformat()))
                 entry.pubDate(release_date)
-
-        self._env.globals.update({'rss_build': False})
 
         with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'feed.xml'), "wb") as fh:
             fh.write(feed.rss_str())
