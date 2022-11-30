@@ -243,10 +243,10 @@ class Site(object):
         write_htaccess(notes_path, settings.CANONICAL_URL + helper.thunderbird_url('releasenotes'))
         write_htaccess(beta_notes_path, settings.CANONICAL_URL + helper.thunderbird_url('releasenotes', channel="beta"))
 
-        self.build_notes_rss(feed_items)
+        self.build_notes_feed(feed_items)
 
-    def build_notes_rss(self, feed_items):
-        """ Builds the release notes rss feed.xml file. Like build_notes, this is en-US only. """
+    def build_notes_feed(self, feed_items):
+        """ Builds the release notes atom.xml file. Like build_notes, this is en-US only. """
         if len(feed_items) == 0:
             return
 
@@ -257,7 +257,7 @@ class Site(object):
         author_name = "Thunderbird"
         author_link = settings.CANONICAL_URL
 
-        releases_page = settings.CANONICAL_URL + helper.thunderbird_url('releases')
+        releases_page = "{}/{}/thunderbird/releases/".format(settings.CANONICAL_URL, self.lang)
 
         feed = FeedGenerator()
         feed.id(settings.CANONICAL_URL)
@@ -305,7 +305,7 @@ class Site(object):
                 title = "Beta {}".format(version.replace('beta', ''))
                 self._env.globals.update(channel='Beta', channel_name='Beta')
 
-            link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, version)
+            link = "{}/{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, self.lang, version)
 
             # Mix in our notes for the template
             self._env.globals.update(**note)
