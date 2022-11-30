@@ -1,6 +1,6 @@
 {% set is_beta = channel_name == "Beta" %}
-<p>{{ _('Check out the notes below for this version of Thunderbird. As always, you’re encouraged to <a href="%(feedback)s">tell us what you think</a>, or <a href="%(bugzilla)s">file a bug in Bugzilla</a>')|format(feedback='https://support.mozilla.org/questions/new/thunderbird', bugzilla='https://bugzilla.mozilla.org/') }}</p>
-<p>{{ release.text|markdown|safe }}</p>
+<p style="display: block">{{ _('Check out the notes below for this version of Thunderbird. As always, you’re encouraged to <a href="%(feedback)s">tell us what you think</a>, or <a href="%(bugzilla)s">file a bug in Bugzilla</a>')|format(feedback='https://support.mozilla.org/questions/new/thunderbird', bugzilla='https://bugzilla.mozilla.org/') }}</p>
+<p style="display: block">{{ release.text|markdown|safe }}</p>
 <hr>
 {% if notes %}
   {% set section = namespace(name='') %}
@@ -68,3 +68,8 @@
     </ul>
   {% endif %}
 {% endif %}
+<style>
+  p {
+      display: inline;
+  }
+</style>
