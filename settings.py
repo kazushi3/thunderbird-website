@@ -115,7 +115,7 @@ URL_MAPPINGS = {
     'thunderbird.lists.enterprise': 'https://thunderbird.topicbox.com/groups/enterprise',
     'thunderbird.organizations': '/organizations',
     'thunderbird.releases.index': '/thunderbird/releases',
-    'thunderbird.releases.rss': '/thunderbird/releases/feed.xml',
+    'thunderbird.releases.atom': '/thunderbird/releases/atom.xml',
     'thunderbird.style': 'https://style.thunderbird.net',
     'thunderbird.site.bug-report': 'https://github.com/thundernest/thunderbird-website/issues',
 }

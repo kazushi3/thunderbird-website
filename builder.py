@@ -260,6 +260,7 @@ class Site(object):
         releases_page = settings.CANONICAL_URL + helper.thunderbird_url('releases')
 
         feed = FeedGenerator()
+        feed.id(settings.CANONICAL_URL)
         feed.title("Thunderbird Release Notes")
         feed.author({'name': author_name, 'uri': author_link})
         feed.link({'href': releases_page})
@@ -306,15 +307,16 @@ class Site(object):
 
             link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, version)
 
+
             # Mix in our notes for the template
             self._env.globals.update(**note)
             content = content_template.render({'version_number': version, 'link': link})
 
             entry = feed.add_entry()
+            entry.id(link)
             entry.title(title)
             entry.link({'href': link})
-            entry.description(description=content)
-            entry.content(content, type="CDATA")
+            entry.content(content, type='html')
             entry.author({'name': author_name, 'uri': author_link})
 
             release_date = release_notes.get('release_date')
@@ -322,10 +324,10 @@ class Site(object):
             if release_date:
                 # Force it to UTC, pubDate checks for tzinfo
                 release_date = parse("{}Z".format(release_date.isoformat()))
-                entry.pubDate(release_date)
+                entry.updated(release_date)
 
-        with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'feed.xml'), "wb") as fh:
-            fh.write(feed.rss_str())
+        with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'atom.xml'), "wb") as fh:
+            fh.write(feed.atom_str())
 
     def build_assets(self):
         """Build assets, that is, bundle and compile the LESS and JS files in `settings.ASSETS`."""
