@@ -282,7 +282,7 @@ class Site(object):
         # Sort again by release date
         feed_items_mixed.sort(key=sort_version_by_release_date, reverse=True)
 
-        content_template = self._env.get_template('_includes/release-notes-content-feed.html')
+        content_template = self._env.get_template('_includes/release-notes-feed.html')
 
         self._env.globals.update(feedback=releasenotes.settings["feedback"], bugzilla=releasenotes.settings["bugzilla"])
 
@@ -306,7 +306,6 @@ class Site(object):
                 self._env.globals.update(channel='Beta', channel_name='Beta')
 
             link = "{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, version)
-
 
             # Mix in our notes for the template
             self._env.globals.update(**note)

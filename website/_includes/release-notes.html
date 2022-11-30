@@ -57,6 +57,125 @@
 {% endblock %}
 
 {% block content %}
-  {% include '_includes/release-notes-content.html' %}
+  <section  class="pt-20 flex justify-center items-center pl-8 pr-8">
+    <aside class="flex flex-col w-full max-w-6xl lg:ml-16 lg:mr-16">
+      <p class="font-lg tracking-wider leading-loose mb-6 p-links-blue">
+        {{ _('Check out the notes below for this version of Thunderbird. As always, you’re encouraged to <a href="%(feedback)s">tell us what you think</a>, or <a href="%(bugzilla)s">file a bug in Bugzilla</a>')|format(feedback='https://support.mozilla.org/questions/new/thunderbird', bugzilla='https://bugzilla.mozilla.org/') }}
+      </p>
+      <aside class="font-lg tracking-wider leading-loose mb-6 markup-page">
+        {{ release.text|markdown|safe }}
+      </aside>
+    </aside>
+  </section>
+
+  <section class="pt-20 pb-16 w-full bg-calendar -mt-20">
+    &nbsp;
+  </section>
+
+  {% if notes %}
+    <section class="pb-10 flex flex-wrap justify-center items-center pl-8 pr-8 bg-grey-lighter">
+      <aside class="flex flex-col w-full max-w-6xl lg:ml-16 lg:mr-16">
+        {% set section = namespace(name='') %}
+        {% set release_group = namespace(name='') %}
+
+        {% for group in range(release.groups|length) %}
+          {% if release.groups[group] %}
+            <section class="mt-10 mb-8 flex justify-center items-center w-full">
+              <span class="header-line flex-1"></span>
+              <h2 class="header-section pl-4 pr-4 mb-0 text-center">
+                {{ release.groups[group] }}
+              </h2>
+              <span class="header-line flex-1"></span>
+            </section>
+            {% set section.name = "" %}
+          {% endif %}
+
+          {% for note in notes %}
+            {% if note.get('group', 1)-1 == group and note.tag != 'unresolved' %}
+              {% if note.tag == 'new' and section.name != note.tag %}
+                <h3 id="whatsnew" class="header-section">
+                  <span>{{ svg('bookmark') }}</span>{{ _('What’s New')}}
+                </h3>
+              {% elif note.tag == 'changed' and section.name != note.tag %}
+                <h3 id="changes" class="header-section pt-14 pb-4">
+                  <span>{{ svg('sync') }}</span>{{ _('Changes')}}
+                </h3>
+              {% elif note.tag == 'fixed' and section.name != note.tag %}
+                <h3 id="fixes" class="header-section pt-14 pb-4">
+                  <span>{{ svg('check') }}</span>{{ _('Fixes')}}
+                </h3>
+              {% endif %}
+
+              {% set section.name = note.tag %}
+              {% set release_group.name = release.groups[group] %}
+
+              <aside id="note-{{ loop.index0 }}"
+                class="flex flex-row flex-wrap items-center bg-white shadow-md mb-4 rounded">
+                <h4 class="font-bold uppercase m-0 p-3 w-24">
+                  {% if note.tag == 'new' %}
+                    <aside class="flex items-center text-orange">
+                      <span class="w-4 mr-2">{{ svg('bookmark') }}</span>
+                      {{ note.tag }}
+                    </aside>
+                  {% elif note.tag == 'changed' %}
+                    <aside class="flex items-center text-purple">
+                      <span class="w-4 mr-2">{{ svg('sync') }}</span>
+                      {{ note.tag }}
+                    </aside>
+                  {% elif note.tag == 'fixed' %}
+                    <aside class="flex items-center text-green">
+                      <span class="w-4 mr-2">{{ svg('check') }}</span>
+                      {{ note.tag }}
+                    </aside>
+                  {% endif %}
+                </h4>
+                <aside class="flex-1 p-3 font-md leading-normal markup-page no-padding">
+                  {{ note.note|markdown|safe }}
+                </aside>
+                {% if is_beta %}
+                  <aside>
+                    {{ note.bug_links|markdown|safe }}
+                  </aside>
+                {% endif %}
+              </aside>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+
+        {% if known_issues %}
+          <h3 id="known-issues" class="header-section pt-14 pb-4">
+            <span>{{ svg('warning') }}</span>{{ _('Known Issues')}}
+          </h3>
+          {% for note in known_issues %}
+            <aside id="note-{{ note.id }}" class="flex flex-row flex-wrap items-center bg-white shadow-md mb-4 rounded">
+              <h4 class="font-bold uppercase m-0 p-3 w-24">
+                <aside class="flex items-center text-red">
+                  <span class="w-4 mr-2">{{ svg('bookmark') }}</span>
+                  {{ _('unresolved') }}
+                </aside>
+              </h4>
+              <aside class="flex-1 p-3 font-md leading-normal markup-page no-padding">
+                {{ note.note|markdown|safe }}
+                {% if note.fixed_in_release %}
+                  <p class="note">
+                    <a href="{{ releasenotes_url(note.fixed_in_release) }}">
+                      {{ _('Resolved in v{version_number}')|f(version_number=note.fixed_in_release.version) }}
+                    </a>
+                  </p>
+                {% endif %}
+              </aside>
+                {% if is_beta %}
+                  <aside>
+                    {{ note.bug_links|markdown|safe }}
+                  </aside>
+                {% endif %}
+            </aside>
+          {% endfor %}
+        {% endif %}
+      </aside>
+    </section>
+  {% endif %}
+
   {% include '_includes/site-prefooter.html' %}
+
 {% endblock %}

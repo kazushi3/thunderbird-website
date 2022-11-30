@@ -167,13 +167,6 @@ def svg(ctx, file_name):
     return open(file).read()
 
 @jinja2.contextfunction
-def rss_safe_svg(ctx, file_name):
-    """ Passes svgs through to the svg helper function, unless we're building the rss feed. In which case it will return an empty string. """
-    if ctx.environment.globals.get('rss_build'):
-        return ''
-    return svg(ctx, file_name)
-
-@jinja2.contextfunction
 def platform_img(ctx, url, optional_attributes=None):
     optional_attributes = optional_attributes or {}
     img_urls = {}
