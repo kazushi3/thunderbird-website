@@ -1,7 +1,4 @@
 {% set is_beta = channel_name == "Beta" %}
-<p>{{ _('Check out the notes below for this version of Thunderbird. As always, you’re encouraged to <a href="%(feedback)s">tell us what you think</a>, or <a href="%(bugzilla)s">file a bug in Bugzilla</a>')|format(feedback='https://support.mozilla.org/questions/new/thunderbird', bugzilla='https://bugzilla.mozilla.org/') }}</p>
-<p>{{ release.text|markdown|safe }}</p>
-<hr>
 {% if notes %}
   {% set section = namespace(name='') %}
   {% set release_group = namespace(name='') %}
@@ -26,9 +23,9 @@
         {% if note.tag == 'new' and section.name != note.tag %}
           <h3>{{ _('What’s New')}}</h3>
         {% elif note.tag == 'changed' and section.name != note.tag %}
-          <h3>{{ _('Changes')}}</h3>
+          <h3>{{ _('Changed')}}</h3>
         {% elif note.tag == 'fixed' and section.name != note.tag %}
-          <h3>{{ _('Fixes')}}</h3>
+          <h3>{{ _('Fixed')}}</h3>
         {% endif %}
 
         {# Now we can open the new list tag #}
@@ -70,6 +67,7 @@
     </ul>
   {% endif %}
 {% endif %}
+<p>{{ _('As always, you’re encouraged to <a href="%(feedback)s">tell us what you think</a>, or <a href="%(bugzilla)s">file a bug in Bugzilla</a>')|format(feedback='https://support.mozilla.org/questions/new/thunderbird', bugzilla='https://bugzilla.mozilla.org/') }}</p>
 <style>
   li p {
       display: inline;
