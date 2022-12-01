@@ -1,8 +1,6 @@
 import datetime
 import errno
 
-from feedgen.feed import FeedGenerator
-
 import helper
 import logging
 import multiprocessing
@@ -14,7 +12,8 @@ import sys
 import time
 import translate
 import webassets
-import feedgenerator
+import htmlmin
+from feedgen.feed import FeedGenerator
 
 if sys.version_info[0] == 3:
     from socketserver import TCPServer
@@ -245,6 +244,7 @@ class Site(object):
 
         self.build_notes_feed(feed_items)
 
+
     def build_notes_feed(self, feed_items):
         """ Builds the release notes atom.xml file. Like build_notes, this is en-US only. """
         if len(feed_items) == 0:
@@ -309,7 +309,9 @@ class Site(object):
 
             # Mix in our notes for the template
             self._env.globals.update(**note)
-            content = content_template.render({'version_number': version, 'link': link})
+
+            # Pull in and minify our template
+            content = htmlmin.minify(content_template.render({'version_number': version, 'link': link}))
 
             entry = feed.add_entry()
             entry.id(link)
