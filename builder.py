@@ -1,6 +1,5 @@
 import datetime
 import errno
-
 import helper
 import logging
 import multiprocessing
@@ -13,7 +12,6 @@ import time
 import translate
 import webassets
 import htmlmin
-from feedgen.feed import FeedGenerator
 
 if sys.version_info[0] == 3:
     from socketserver import TCPServer
@@ -29,8 +27,10 @@ else:
 from dateutil.parser import parse
 from jinja2 import Environment, FileSystemLoader
 from thunderbird_notes import releasenotes
+from product_details import thunderbird_desktop
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from feedgen.feed import FeedGenerator
 
 extensions = ['jinja2.ext.i18n']
 
@@ -296,13 +296,13 @@ class Site(object):
                 print("Couldn't find release key for version {}, this shouldn't happen.".format(version))
                 continue
 
-            title = "Release {}".format(version)
+            title = "Thunderbird {}".format(version)
 
             self._env.globals.update(channel='Release', channel_name='Release')
 
             if settings.SHOW_BETA_NOTES_IN_RSS_FEED and 'beta' in version:
                 # Remove redundant beta from title
-                title = "Beta {}".format(version.replace('beta', ''))
+                title = "Thunderbird Beta {}".format(version.replace('beta', ''))
                 self._env.globals.update(channel='Beta', channel_name='Beta')
 
             link = "{}/{}/thunderbird/{}/releasenotes/".format(settings.CANONICAL_URL, self.lang, version)
@@ -320,12 +320,18 @@ class Site(object):
             entry.content(content, type='html')
             entry.author({'name': author_name, 'uri': author_link})
 
-            release_date = release_notes.get('release_date')
+            # Note: Published Date is DateTime, but Updated Date is a string!
+            published_date = release_notes.get('release_date')
+            updated_date = thunderbird_desktop.get_release_date(version)
 
-            if release_date:
+            if published_date:
                 # Force it to UTC, pubDate checks for tzinfo
-                release_date = parse("{}Z".format(release_date.isoformat()))
-                entry.updated(release_date)
+                published_date = parse("{}Z".format(published_date.isoformat()))
+                entry.pubDate(published_date)
+            if updated_date:
+                # Force it to UTC, updated checks for tzinfo
+                updated_date = parse("{}T00:00:00Z".format(updated_date))
+                entry.updated(updated_date)
 
         with open(os.path.join(self.outpath, 'thunderbird', 'releases', 'atom.xml'), "wb") as fh:
             fh.write(feed.atom_str())
