@@ -166,3 +166,5 @@ WEBSITE_JS = {
 START_CSS = {
     'start-style': ['less.old/sandstone/fonts.less', 'less.old/thunderbird/start.less']
 }
+
+LAST_SAFE_VERSION = 91
