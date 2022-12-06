@@ -10,7 +10,7 @@
     <title>{% filter striptags|e %}{% block title %}{% endblock %}{% endfilter %}</title>
     {{ l10n_css() }}
     <link href="/media/css/new-start-style.css" rel="stylesheet" type="text/css" />
-    {% block additional_styles %}{% endblock %}
+    {% block additional_head %}{% endblock %}
   </head>
   <body class="start-bg">
     <main>
