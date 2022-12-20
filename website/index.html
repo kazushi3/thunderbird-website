@@ -90,7 +90,9 @@
               </a>
               <span class="blog-body">
                 {% if get_blog_data(x)['thumbnail_url'] %}
-                <p><img src="{{ get_blog_data(x)['thumbnail_url'] }}" alt="{{ get_blog_data(x)['thumbnail_alt'] }}"/></p>
+                <p class="thumbnail">
+                  <img src="{{ get_blog_data(x)['thumbnail_url'] }}" alt="{{ get_blog_data(x)['thumbnail_alt'] }}"/>
+                </p>
                 {% endif %}
                 {{ get_blog_data(x)['summary'] }}
               </span>
