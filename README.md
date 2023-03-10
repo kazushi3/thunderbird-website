@@ -97,3 +97,28 @@ You can contribute to content translation of www.thunderbird.net pages using [Po
 # Donation FAQ
 
 The actual questions and answers part of the FAQ can be found in `./faq.py`. Make sure to include the `gettext` call, otherwise we won't be able to extract the strings for localization.
+
+# Tests
+
+## Pytest
+
+To run all tests use the command: 
+```
+python -m pytest tests/
+```
+
+## Playwright (via Pytest)
+
+Thunderbird-website uses Playwright via the Pytest plugin. For more information on the Playwright Python bindings [click here](https://playwright.dev/python/).
+
+Since the build script only works on Python 2 right now, you'll have to first build the site:
+```
+python2 build-site.py
+```
+
+To run just the playwright tests use the command:
+```
+python -m pytest tests/ui/
+```
+
+Playwright is setup to run UI tests under Firefox and Chromium. 
